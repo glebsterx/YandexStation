@@ -131,33 +131,35 @@ class YandexClimate(ClimateEntity):
         # first time init
         if self._is_on is None:
             for d in data['capabilities']:
-                if d['state']['instance'] == 'temperature':
-                    self._supported |= SUPPORT_TARGET_TEMPERATURE
-                    range_ = d['parameters']['range']
-                    self._min_temp = range_['min']
-                    self._max_temp = range_['max']
-                    self._precision = range_['precision']
+                if d['type'] != 'devices.capabilities.on_off':
+                    if d['parameters']['instance'] == 'temperature':
+                        self._supported |= SUPPORT_TARGET_TEMPERATURE
+                        range_ = d['parameters']['range']
+                        self._min_temp = range_['min']
+                        self._max_temp = range_['max']
+                        self._precision = range_['precision']
 
-                elif d['state']['instance'] == 'fan_speed':
-                    self._supported |= SUPPORT_FAN_MODE
-                    self._fan_modes = [
-                        p['value'] for p in d['parameters']['modes']
-                    ]
+                    elif d['parameters']['instance'] == 'fan_speed':
+                        self._supported |= SUPPORT_FAN_MODE
+                        self._fan_modes = [
+                            p['value'] for p in d['parameters']['modes']
+                        ]
 
-                elif d['state']['instance'] == 'thermostat':
-                    self._hvac_modes += [
-                        p['value'] for p in d['parameters']['modes']
-                    ]
+                    elif d['parameters']['instance'] == 'thermostat':
+                        self._hvac_modes += [
+                            p['value'] for p in d['parameters']['modes']
+                        ]
 
         for d in data['capabilities']:
-            if d['state']['instance'] == 'on':
-                self._is_on = d['state']['value']
+            if d['state'] is not None:
+                if d['state']['instance'] == 'on':
+                    self._is_on = d['state']['value']
 
-            elif d['state']['instance'] == 'temperature':
-                self._temp = d['state']['value']
+                elif d['state']['instance'] == 'temperature':
+                    self._temp = d['state']['value']
 
-            elif d['state']['instance'] == 'fan_speed':
-                self._fan_mode = d['state']['value']
+                elif d['state']['instance'] == 'fan_speed':
+                    self._fan_mode = d['state']['value']
 
-            elif d['state']['instance'] == 'thermostat':
-                self._hvac_mode = d['state']['value']
+                elif d['state']['instance'] == 'thermostat':
+                    self._hvac_mode = d['state']['value']
